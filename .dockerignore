@@ -3,3 +3,6 @@
 !target/release/kubeshelf-rs
 !web/dist
 !web/dist/**
+
+!licenses
+!licenses/**

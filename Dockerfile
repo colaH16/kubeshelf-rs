@@ -22,6 +22,7 @@ RUN apt-get update \
 
 COPY --chmod=0755 target/release/kubeshelf-rs /usr/local/bin/kubeshelf
 COPY web/dist /usr/share/kubeshelf/web
+COPY licenses /usr/share/licenses/kubeshelf
 
 # HOME points at the writable /tmp volume; git/ssh never need a real home.
 ENV KUBESHELF_STATIC_DIR=/usr/share/kubeshelf/web \

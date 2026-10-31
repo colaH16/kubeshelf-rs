@@ -40,7 +40,7 @@ subject 불일치 매니페스트 거부, 엄격 ConfigMap(중첩 알 수 없는
    특히 arm64 러너에서의 Node tarball·rolldown/TypeScript 네이티브 바인딩, amd64 Chrome 브라우저 스모크(필수로 설정됨).
 2. **컨테이너 이미지 미빌드**: 이 환경의 rootless podman은 subuid 매핑이 없어 Ubuntu 이미지를 풀 수 없었습니다.
    Dockerfile·`.dockerignore`는 CI에서 처음 검증됩니다.
-3. **브라우저 스모크**: 로컬 Chromium이 시작 직후 비정상 종료(signal 6)해서 건너뛰었습니다.
+3. **브라우저 스모크 추가 확인**: Chromium 종료 원인은 로컬 폰트 설정이었습니다. `FONTCONFIG_FILE`을 유효한 Fontconfig 설정으로 지정하고 `KUBESHELF_E2E_BROWSER_REQUIRED=1`로 실행해 화면 표시·비공개 정보 숨김을 포함한 146개 검사를 통과했습니다. 위 145개 기록은 최초 브라우저 생략 실행입니다.
 4. **실제 서비스와의 통합**: authentik, 실제 Kubernetes API, Fleet, SSH Git 서버와는 아직 연결해 보지 않았습니다.
    (모의 서버는 원본 코드가 쓰는 API 형식에 맞췄습니다.)
 5. **운영 교체**: [operations.md](operations.md)의 확인 목록으로 교체 후 점검이 필요합니다.

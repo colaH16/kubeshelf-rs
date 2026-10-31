@@ -1,3 +1,6 @@
+// Portions derived from Go net/url. Copyright 2009 The Go Authors.
+// BSD-style license: see licenses/Go-BSD-3-Clause.txt.
+
 //! A small, faithful port of the parts of Go 1.27.1 `net/url` that KubeShelf uses.
 //!
 //! Why not the `url` crate? It implements the WHATWG URL standard, which is
