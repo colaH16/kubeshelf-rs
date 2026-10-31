@@ -3,7 +3,8 @@
 //! Routes, methods, status codes and bodies follow the Go server:
 //! JSON API responses are Go `json.Encoder` output (HTML-escaped, trailing
 //! newline); the auth endpoints answer errors with Go `http.Error`-style
-//! plain text. Every response carries the same no-store and security headers.
+//! plain text. Every response carries the same no-store and security headers,
+//! except the public cola16 branding files (`PUBLIC_BRANDING`), which are briefly cacheable.
 //!
 //! Authorisation order per endpoint (Go `account` / `admin` wrappers):
 //! identity → role (401 for anonymous personal routes, 403 for non-admins) →
@@ -164,15 +165,26 @@ fn conflict_or(e: &anyhow::Error, fallback: u16) -> u16 {
     }
 }
 
+/// Public cola16 branding files the other cola16 sites load: the link manifest and
+/// the versioned shared header. Exact paths only.
+const PUBLIC_BRANDING: [&str; 3] = [
+    "/branding/navigation.json",
+    "/branding/v1/cola-header.js",
+    "/branding/v1/cola-header.css",
+];
+
 async fn security_headers(request: Request, next: Next) -> Response {
-    // This one static, public link manifest can be read by the other cola16 sites.
-    // API/auth responses retain their original same-origin boundary and headers.
-    let public_navigation = request.uri().path() == "/branding/navigation.json"
+    // Only these static, public files may be read cross-origin and cached briefly.
+    // API/auth responses retain their original same-origin boundary and no-store.
+    let public_branding = PUBLIC_BRANDING.contains(&request.uri().path())
         && matches!(
             *request.method(),
             axum::http::Method::GET | axum::http::Method::HEAD
         );
     let mut response = next.run(request).await;
+    // A missing file during a rollout must not be cached as public.
+    let cacheable = public_branding
+        && (response.status().is_success() || response.status() == StatusCode::NOT_MODIFIED);
     let h = response.headers_mut();
     for (k, v) in [
         ("cache-control", "private, no-store, max-age=0"),
@@ -187,11 +199,23 @@ async fn security_headers(request: Request, next: Next) -> Response {
     ] {
         h.insert(k, HeaderValue::from_static(v));
     }
-    if public_navigation {
+    if public_branding {
         h.insert(
             header::ACCESS_CONTROL_ALLOW_ORIGIN,
             HeaderValue::from_static("*"),
         );
+    }
+    if cacheable {
+        // Compatible v1 updates reach browsers and the CDN within about five minutes.
+        for k in [
+            "cache-control",
+            "cdn-cache-control",
+            "cloudflare-cdn-cache-control",
+        ] {
+            h.insert(k, HeaderValue::from_static("public, max-age=300"));
+        }
+        h.remove(header::PRAGMA);
+        h.remove(header::VARY);
     }
     response
 }
@@ -632,42 +656,59 @@ mod tests {
     use tower::ServiceExt;
 
     #[tokio::test]
-    async fn cross_origin_reads_are_limited_to_the_public_navigation_file() {
+    async fn cross_origin_reads_and_caching_are_limited_to_public_branding_files() {
         let app = Router::new()
             .fallback(|| async { "public fixture" })
             .layer(middleware::from_fn(security_headers));
-        for (method, path, allowed) in [
-            ("GET", "/branding/navigation.json", true),
-            ("HEAD", "/branding/navigation.json", true),
-            ("GET", "/branding/navigation.json?v=1", true),
-            ("POST", "/branding/navigation.json", false),
-            ("GET", "/api/catalog", false),
-            ("GET", "/api/me/favorites", false),
-            ("GET", "/auth/login", false),
-            ("GET", "/branding/navigation.json/other", false),
+        let missing = Router::new()
+            .fallback(|| async { StatusCode::NOT_FOUND })
+            .layer(middleware::from_fn(security_headers));
+        for (router, method, path, allowed, cached) in [
+            (&app, "GET", "/branding/navigation.json", true, true),
+            (&app, "HEAD", "/branding/navigation.json", true, true),
+            (&app, "GET", "/branding/navigation.json?v=1", true, true),
+            (&app, "GET", "/branding/v1/cola-header.js", true, true),
+            (&app, "HEAD", "/branding/v1/cola-header.css", true, true),
+            (&missing, "GET", "/branding/v1/cola-header.js", true, false),
+            (&app, "POST", "/branding/navigation.json", false, false),
+            (&app, "POST", "/branding/v1/cola-header.js", false, false),
+            (&app, "GET", "/api/catalog", false, false),
+            (&app, "GET", "/api/me/favorites", false, false),
+            (&app, "GET", "/auth/login", false, false),
+            (&app, "GET", "/branding/navigation.json/other", false, false),
+            (&app, "GET", "/branding/v1/other.js", false, false),
+            (&app, "GET", "/branding/v2/cola-header.js", false, false),
+            (&app, "GET", "/index.html", false, false),
         ] {
             let request = Request::builder()
                 .method(method)
                 .uri(path)
                 .header(header::ORIGIN, "https://rag.cola16.app")
+                .header(header::COOKIE, "kubeshelf_session=secret")
                 .body(Body::empty())
                 .unwrap();
-            let response = app.clone().oneshot(request).await.unwrap();
+            let response = router.clone().oneshot(request).await.unwrap();
+            let headers = response.headers();
             assert_eq!(
-                response
-                    .headers()
-                    .contains_key(header::ACCESS_CONTROL_ALLOW_ORIGIN),
-                allowed
+                headers.contains_key(header::ACCESS_CONTROL_ALLOW_ORIGIN),
+                allowed,
+                "{method} {path}"
             );
-            assert!(
-                !response
-                    .headers()
-                    .contains_key(header::ACCESS_CONTROL_ALLOW_CREDENTIALS)
-            );
-            assert_eq!(
-                response.headers()[header::CACHE_CONTROL],
-                "private, no-store, max-age=0"
-            );
+            assert!(!headers.contains_key(header::ACCESS_CONTROL_ALLOW_CREDENTIALS));
+            assert_eq!(headers["x-content-type-options"], "nosniff");
+            if cached {
+                assert_eq!(headers[header::CACHE_CONTROL], "public, max-age=300");
+                assert_eq!(headers["cdn-cache-control"], "public, max-age=300");
+                assert!(!headers.contains_key(header::VARY));
+            } else {
+                assert_eq!(
+                    headers[header::CACHE_CONTROL],
+                    "private, no-store, max-age=0",
+                    "{method} {path}"
+                );
+                assert_eq!(headers["cdn-cache-control"], "no-store");
+                assert_eq!(headers[header::VARY], "Cookie");
+            }
         }
     }
 

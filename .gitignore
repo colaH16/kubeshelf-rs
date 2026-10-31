@@ -2,6 +2,7 @@
 /web/node_modules/
 /web/dist/
 /web/public/branding/navigation.json
+/web/public/branding/v1/
 /.go-original/
 *.log
 .env

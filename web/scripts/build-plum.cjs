@@ -5,6 +5,21 @@ process.chdir(require('path').resolve(__dirname,'../..'));
 // One editable manifest supplies both the immediate fallback and public consumers.
 fs.mkdirSync('web/public/branding',{recursive:true});
 fs.copyFileSync('web/src/cola16-navigation.json','web/public/branding/navigation.json');
+// Shared header contract v1: one CSS source styles the shadow root (embedded in the
+// script) and, scoped to the undefined element, the light-DOM fallback before/without
+// script. Consumers may vendor an older fallback copy; :not(:defined) keeps it from
+// overriding the shadow styles of a newer script.
+const headerCSS=fs.readFileSync('web/src/cola-header.css','utf8');
+const fallbackCSS=postcss.parse(headerCSS),host='cola-header:not(:defined)';
+fallbackCSS.walkRules(r=>{r.selectors=r.selectors.map(s=>s.startsWith(':host')?s.replace(/^:host(?:\((.*)\))?/,(_,inner='')=>host+inner):s.startsWith('::slotted(')?host+'>'+s.slice(10,-1):host+' '+s)});
+let headerJS=fs.readFileSync('web/src/cola-header.js','utf8');
+for(const [token,value] of [["/*@css*/''",JSON.stringify(headerCSS)],['/*@navigation*/{ version: 1, items: [] }',JSON.stringify(JSON.parse(fs.readFileSync('web/src/cola16-navigation.json','utf8')))]]){
+ if(!headerJS.includes(token))throw new Error('web/src/cola-header.js lost its build token '+token);
+ headerJS=headerJS.replace(token,()=>value);
+}
+fs.mkdirSync('web/public/branding/v1',{recursive:true});
+fs.writeFileSync('web/public/branding/v1/cola-header.js',headerJS);
+fs.writeFileSync('web/public/branding/v1/cola-header.css',fallbackCSS.toString());
 const base=postcss.parse(fs.readFileSync('web/src/style.css','utf8'));
 function color(hex,prop){
  let s=hex.slice(1);if(s.length===3||s.length===4)s=s.split('').map(x=>x+x).join('');

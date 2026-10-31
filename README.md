@@ -85,11 +85,13 @@ Dockerfile      CI가 만든 네이티브 바이너리 + web/dist만 담는 Ubun
 ## cola16 플럼 테마
 
 `apps.cola16.app`에서 선택적 플럼 테마를 사용합니다. 다른 호스트의 기본 색상은 유지되며,
-`?brand=cola16`으로 명시적으로 미리 볼 수 있습니다. 테마 선택은 자동/라이트/다크이며
+`?brand=cola16`으로 명시적으로 미리 볼 수 있습니다. 헤더의 테마 버튼은 자동→라이트→다크를 순환하며
 `cola-theme`에 저장합니다. 저장이 막혀도 현재 화면에는 적용하고 안내를 표시합니다.
 웹폰트나 외부 UI 라이브러리는 새로 내려받지 않습니다.
 
-`web/src/plum.tokens.json`은 디자인 토큰 원본입니다. `plum-layout.css`는 제품 레이아웃,
+`web/src/plum.tokens.json`은 디자인 토큰 원본입니다. 값은 2026-10-31 사용자가 승인한 V7 미리보기의
+플럼 라이트·다크 전체입니다(V4에서 다크 배경 5역할은 V6, 다크 강조 4역할은 V7). 운영 배포는 아직입니다.
+다크 `theme-color`(`#191719`)는 `web/public/theme-init.js`와 `web/src/cola-header.js`에도 같은 값으로 있습니다. `plum-layout.css`는 제품 레이아웃,
 `web/scripts/build-plum.cjs`는 기존 CSS를 범위가 제한된 색상 레이어로 생성합니다.
 `npm --prefix web run build`가 prebuild에서 색상 레이어를 자동으로 재생성합니다. 저장소 루트의 `node web/scripts/build-plum.cjs`로도 생성할 수 있습니다. 생성된 `plum.css`도 Git으로 관리합니다.
 
@@ -98,7 +100,8 @@ Dockerfile      CI가 만든 네이티브 바이너리 + web/dist만 담는 Ubun
 실제 `updatedAt`과 실패 후 이전 조회 결과를 구별합니다. 준비 상태는 웹 HTTP 응답 보장이 아닙니다.
 cola16 공간 메뉴와 푸터에서 기록·포트폴리오·노트 검색·노트 지도로 돌아갈 수 있습니다.
 
-cola16 공통 메뉴는 화면 최상단에 직접 보이고 테마와 로그인/로그아웃은 오른쪽에 있습니다.
+cola16 공통 헤더는 화면 최상단에 직접 보이고 테마 버튼과 로그인/로그아웃은 오른쪽에 있습니다.
+기록·포트폴리오와 같은 공통 `<cola-header>` 요소를 씁니다.
 모바일에서도 공통 링크가 바로 보이며 좁은 폭에서는 줄바꿈합니다. 모바일 헤더는 스크롤하면 올라가서 조작 공간을 가리지 않습니다. 짧은 가로 화면의
 네임스페이스 편집창은 본문 전체를 스크롤해 목록이 가려지지 않게 합니다. 저장 오류는
 편집창 본문 위로 스크롤해 표시하며 초안과 저장 버튼의 포커스는 유지합니다.
@@ -107,4 +110,4 @@ cola16 공통 메뉴는 화면 최상단에 직접 보이고 테마와 로그인
 저장소와 자동 공유한다는 뜻은 아닙니다).
 
 
-공통 메뉴 원본은 `web/src/cola16-navigation.json` 하나입니다. 빌드가 공개 파일과 기본 표시용 데이터를 함께 생성합니다. 공개 설정 주소는 `https://apps.cola16.app/branding/navigation.json`이며 KubeShelf가 읽습니다. 설정을 못 받아도 번들에 포함된 기본 링크가 바로 표시됩니다. 다른 앱 연결 방법과 범위는 [공통 메뉴 계약](docs/cola16-navigation.md)을 참고하세요.
+공통 메뉴 원본은 `web/src/cola16-navigation.json` 하나이고 공통 헤더 UI 원본은 `web/src/cola-header.{js,css}`입니다. 빌드가 `/branding/navigation.json`과 `/branding/v1/cola-header.{js,css}`를 생성합니다. 이 세 공개 파일만 다른 사이트에서 읽을 수 있고 5분 동안 캐시됩니다. 설정이나 스크립트를 못 받아도 기본 링크가 바로 표시됩니다. 다른 앱 연결 방법과 범위는 [공통 헤더 계약](docs/cola16-navigation.md)을 참고하세요.

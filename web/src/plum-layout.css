@@ -17,7 +17,6 @@ input::placeholder{color:var(--cola-muted)}
 .content-shell main{max-width:1440px;width:100%;margin-inline:auto;padding:28px 32px}
 .page-heading{margin-bottom:24px}.page-heading h1{font-size:32px}.page-heading p{font-size:16px}.eyebrow{display:none}
 .topbar{height:auto;min-height:72px;padding:8px 32px;gap:12px;flex-wrap:wrap}.top-actions{gap:12px;position:relative;min-width:0}.breadcrumb{font-size:14px}
-.brand-theme{display:flex;gap:8px;align-items:center;font-size:14px}.brand-theme select{padding:8px;max-width:100px;min-height:44px}.brand-storage-status{font-size:12px;color:var(--cola-warning);max-width:200px}
 .toolbar{gap:16px;margin-bottom:24px}.search{width:560px}.search input{font-size:16px;padding:10px 0}.toolbar-info{font-size:13px;color:var(--cola-muted)}
 .card-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:16px}.service-card{padding:12px 16px;background:var(--cola-surface);border-color:var(--cola-divider);transition:border-color 140ms}.service-card:hover{transform:none;border-color:var(--cola-border)}
 .card-controls{flex-wrap:wrap;gap:4px}.card-badges{gap:4px}.health-label{font-size:12px;color:var(--cola-muted)}.card-controls>.favorite{margin-left:auto}.card-main{padding:12px 0;align-items:start}.card-main h3{font-size:18px;line-height:1.5;white-space:normal;overflow-wrap:anywhere}.card-main p{font-size:14px;white-space:normal;overflow-wrap:anywhere;color:var(--cola-muted)}
@@ -29,8 +28,7 @@ input::placeholder{color:var(--cola-muted)}
 .page-footer{font-size:13px;margin-top:32px;align-items:start;flex-wrap:wrap;line-height:1.7}.page-footer>a{text-decoration:underline}.page-footer>span:nth-child(2){max-width:660px}
 .modal{border-radius:4px;max-height:calc(100dvh - 32px)}.modal>header,.modal>footer{padding:16px 20px}.modal-body{padding:20px}.modal h2{font-size:22px}.modal-backdrop{background:#0009;backdrop-filter:none}.modal>footer{flex-wrap:wrap}.footer-actions{margin-left:auto;flex-wrap:wrap}.field{font-size:14px}.field>input,.field>select{font-size:16px}.icon-picker button{width:44px;height:44px}.icon-picker button.selected,.display-options>label.selected,.collection-tabs>a.active{background:var(--cola-raised);color:var(--cola-text);border-color:var(--cola-accent)}
 .defaults-bar{border-color:var(--cola-border);background:var(--cola-raised);border-radius:4px;box-shadow:none}.defaults-bar strong{color:var(--cola-text);font-size:16px}.defaults-bar p{color:var(--cola-muted);font-size:14px}.toast{background:var(--cola-surface);color:var(--cola-text);border-color:var(--cola-border);font-size:14px}.two-fields{min-width:0}
-.skip-content{position:fixed;top:-100px;left:16px;z-index:1000;padding:12px 16px;background:var(--cola-accent);color:var(--cola-on-accent)}.skip-content:focus{top:12px}
-@media(max-width:760px){.content-shell main{padding:20px 16px}.topbar{padding:8px 16px;gap:8px}.top-actions{gap:8px;margin-left:auto;flex-wrap:wrap}.breadcrumb{margin-right:auto}.brand-theme>span{display:none}.page-heading{gap:16px}.page-heading h1{font-size:28px}.page-heading p{font-size:15px}.toolbar{flex-wrap:wrap;gap:12px}.search{width:100%}.toolbar-info{width:100%;justify-content:space-between}.card-grid{grid-template-columns:minmax(0,1fr)}.card-address select{width:0;min-width:0}.modal-backdrop{padding:12px}.modal{max-height:calc(100dvh - 24px)}.modal-body{padding:16px}.modal>header,.modal>footer{padding:12px 16px}.two-fields{grid-template-columns:1fr}.brand small{font-size:11px}.defaults-actions{flex-wrap:wrap}.brand-storage-status:empty{display:none}}
+@media(max-width:760px){.content-shell main{padding:20px 16px}.topbar{padding:8px 16px;gap:8px}.top-actions{gap:8px;margin-left:auto;flex-wrap:wrap}.breadcrumb{margin-right:auto}.page-heading{gap:16px}.page-heading h1{font-size:28px}.page-heading p{font-size:15px}.toolbar{flex-wrap:wrap;gap:12px}.search{width:100%}.toolbar-info{width:100%;justify-content:space-between}.card-grid{grid-template-columns:minmax(0,1fr)}.card-address select{width:0;min-width:0}.modal-backdrop{padding:12px}.modal{max-height:calc(100dvh - 24px)}.modal-body{padding:16px}.modal>header,.modal>footer{padding:12px 16px}.two-fields{grid-template-columns:1fr}.brand small{font-size:11px}.defaults-actions{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .danger,.down-text,.defaults-error{color:var(--cola-error)}.error-box{overflow-wrap:anywhere}
 .workspace small{word-break:keep-all;line-height:1.5}
@@ -57,30 +55,19 @@ input:not([type=checkbox]):not([type=radio]){min-height:44px!important}
 .page-footer>span:first-child{min-width:0;max-width:100%;flex-wrap:wrap;overflow-wrap:anywhere}
 .page-footer .muted{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:break-all}
 
-/* Shared cola16 header: visible links at the top; app navigation remains separate. */
+/* Shared cola16 header (<cola-header>, styled by /branding/v1/cola-header.css).
+   KubeShelf owns only its placement and the account slot contents. */
 .app-shell{display:block}
-.cola-global-header{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:minmax(160px,1fr) auto minmax(220px,1fr);gap:24px;align-items:center;padding:16px 32px;background:var(--cola-bg);border-bottom:1px solid var(--cola-divider)}
-.cola-brand{display:inline-flex;gap:12px;align-items:baseline;min-height:44px;align-content:center;justify-self:start;color:var(--cola-text);font-size:24px;font-weight:700;letter-spacing:-.03em;text-decoration:none}
-.cola-brand small{font-size:14px;font-weight:400;letter-spacing:0;color:var(--cola-muted)}
-.cola-nav{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 24px;min-width:0}
-.cola-nav a{display:inline-flex;align-items:center;min-height:44px;font-size:14px;white-space:nowrap;color:var(--cola-text);text-decoration:none}
-.cola-nav a:hover{text-decoration:underline;color:var(--cola-accent-hover)}
-.cola-nav [aria-current=page]{font-weight:700;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:.2em}
-.cola-global-actions{display:flex;gap:12px;align-items:center;justify-content:flex-end;justify-self:end;flex-wrap:wrap;min-width:0}
-.brand-storage-status:empty{display:none}
-.cola-global-actions .brand-storage-status{flex-basis:100%;line-height:1.6}
+cola-header{position:sticky;top:0;z-index:30}
+.cola-account .button{min-height:44px}
 .sidebar{top:var(--cola-header-height,77px)}
 .topbar{min-height:48px;padding-block:2px;background:var(--cola-bg)}
-@media(min-width:761px) and (max-width:1100px){.cola-global-header{grid-template-columns:auto minmax(0,1fr) auto;gap:16px;padding-inline:24px}.cola-nav{gap:0 16px}.cola-global-actions{gap:8px}.cola-global-actions .admin-badge{display:none}}
+@media(min-width:761px) and (max-width:1100px){.cola-account .admin-badge{display:none}}
 @media(max-width:760px){
- .cola-global-header{grid-template-columns:minmax(0,1fr) auto;padding:8px 16px;gap:4px 8px}
- .cola-brand{font-size:22px;gap:8px;align-items:center}
- .cola-nav{grid-column:1/-1;grid-row:2;gap:0 20px}
- .cola-global-actions{gap:8px;max-width:168px}
- .cola-global-actions .brand-theme select{padding:6px;max-width:76px}
- .cola-global-actions .admin-badge,.cola-global-actions .demo-badge{display:none}
- .cola-global-actions .button{padding:8px 10px}
- .cola-global-actions .button svg{display:none}
+ .cola-account{max-width:168px}
+ .cola-account .admin-badge,.cola-account .demo-badge{display:none}
+ .cola-account .button{padding:8px 10px}
+ .cola-account .button svg{display:none}
  .sidebar{top:0;z-index:40}
  .sidebar-shade{z-index:35}
  .topbar{min-height:44px;padding-block:0}
@@ -91,7 +78,6 @@ input:not([type=checkbox]):not([type=radio]){min-height:44px!important}
 /* The native skip link lands below the sticky global header. */
 :root{scroll-padding-top:calc(var(--cola-header-height,77px) + 16px)}
 @media(min-width:761px){.topbar{display:none}}
-.cola-nav a{max-width:100%;white-space:normal;overflow-wrap:anywhere}
 
 /* On phones, scroll the full menu out of the way while using the app. */
-@media(max-width:760px){.cola-global-header{position:relative}:root{scroll-padding-top:16px}}
+@media(max-width:760px){cola-header{position:relative}:root{scroll-padding-top:16px}}
