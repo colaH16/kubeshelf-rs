@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, ChevronDown, Plus, Save, Trash2 } from 'lucide-react';
 import type { AdminState, AppSettings, Card, Endpoint, Settings } from './types';
 import { AppIcon, iconNames, Modal, PolicyEditor } from './ui';
@@ -24,6 +24,7 @@ export default function Editor({ request, data, saving, onSave, onClose }: { req
   const app = (s: Settings, id: string): AppSettings => s.apps[id] ||= { hidden: false };
   const eSettings = (s: Settings, e: Endpoint) => { const a = app(s, e.appId); a.endpoints ||= {}; return a.endpoints[e.id] ||= {}; };
   const persist = async (value = draft, reviewEndpoints: string[] = []) => { setError(''); try { const result = await onSave(value, base, reviewEndpoints); setBase(result.baseCommit); setSaved(comparable(result.settings)); setDraft(current => { if (comparable(current) === comparable(value)) return structuredClone(result.settings); const next = structuredClone(current); next.revision = result.revision; for (const [id, a] of Object.entries(result.settings.apps)) { if (a.reviewed) app(next, id).reviewed = a.reviewed; } return next; }); } catch (e) { setError((e as Error).message); } };
+  useEffect(() => { if (error) document.querySelector('.modal-body')?.scrollTo({ top: 0, behavior: 'auto' }); }, [error]);
   const close = () => { if (!dirty || window.confirm('저장하지 않은 변경사항을 닫을까요?')) onClose(); };
   const card = request.kind === 'card' ? data.catalog.cards.find(c => c.id === request.card.id && c.source === request.card.source) || request.card : undefined;
   const manualID = request.kind === 'manual' ? newManualID : card?.source === 'custom' ? card.endpoints[0]?.appId : undefined;

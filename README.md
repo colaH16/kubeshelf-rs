@@ -91,10 +91,16 @@ Dockerfile      CI가 만든 네이티브 바이너리 + web/dist만 담는 Ubun
 
 `web/src/plum.tokens.json`은 디자인 토큰 원본입니다. `plum-layout.css`는 제품 레이아웃,
 `web/scripts/build-plum.cjs`는 기존 CSS를 범위가 제한된 색상 레이어로 생성합니다.
-기존 CSS나 토큰/레이아웃 변경 뒤 저장소 루트에서 `node web/scripts/build-plum.cjs`를 실행하고
-`npm --prefix web run build`로 확인합니다. 생성된 `plum.css`도 Git으로 관리합니다.
+`npm --prefix web run build`가 prebuild에서 색상 레이어를 자동으로 재생성합니다. 저장소 루트의 `node web/scripts/build-plum.cjs`로도 생성할 수 있습니다. 생성된 `plum.css`도 Git으로 관리합니다.
 
 서비스 탐색·즐겨찾기·접속 노드·Git 저장 및 적용 상태는 기존 API를 사용합니다.
 색뿐인 준비 점에 문구를 추가하고 항상 표시되던 전체 `Ready`는 중립적인 설명으로 바꿨습니다.
 실제 `updatedAt`과 실패 후 이전 조회 결과를 구별합니다. 준비 상태는 웹 HTTP 응답 보장이 아닙니다.
 cola16 공간 메뉴와 푸터에서 기록·포트폴리오·노트 검색·노트 지도로 돌아갈 수 있습니다.
+
+모바일에서는 테마와 cola16 공간 메뉴가 기존 탐색 메뉴 안에 있으며, 짧은 가로 화면의
+네임스페이스 편집창은 본문 전체를 스크롤해 목록이 가려지지 않게 합니다. 저장 오류는
+편집창 본문 위로 스크롤해 표시하며 초안과 저장 버튼의 포커스는 유지합니다.
+상태색은 이름 기반 명시적 규칙으로 매핑하고 장식 아이콘 색과 구분합니다.
+같은 출처의 여러 탭은 storage 이벤트로 테마 선택을 동기화합니다(별도 출처 사이트의
+저장소와 자동 공유한다는 뜻은 아닙니다).

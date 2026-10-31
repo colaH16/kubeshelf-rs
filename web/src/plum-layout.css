@@ -37,3 +37,20 @@ input::placeholder{color:var(--cola-muted)}
 .workspace small{word-break:keep-all;line-height:1.5}
 
 .search-caption{font-size:14px;white-space:nowrap}
+/* Legacy dense dialog rules must not shrink the shared touch target. */
+button,select,textarea{min-height:44px!important}
+input:not([type=checkbox]):not([type=radio]){min-height:44px!important}
+.check-row,.namespace-hide-control,.display-options>label{min-height:44px}
+/* Short landscape/zoomed windows use one scrolling body, not a zero-height list. */
+@media(max-height:600px){
+ .namespace-modal .modal-body{display:block;overflow-y:auto;min-height:0}
+ .namespace-modal .namespace-policy-editor,.namespace-modal .namespace-policy-panel,.namespace-modal .namespace-services{display:block;flex:none;min-height:0}
+ .namespace-modal .namespace-service-scroll{height:auto;min-height:80px;max-height:none;overflow:visible}
+ .namespace-modal .permission-options{max-height:none;overflow:visible}
+}
+.sidebar-brand-controls{border-top:1px solid var(--cola-divider);padding-top:12px;margin-bottom:16px;display:flex;flex-direction:column;gap:12px}
+.sidebar-brand-controls .brand-theme{justify-content:space-between}.sidebar-brand-controls .brand-theme>span{display:inline}
+.sidebar-brand-controls .creator-menu nav{position:static;width:100%;max-width:none;margin-top:8px}
+.save-note{flex:1 1 150px;min-width:0;word-break:keep-all;overflow-wrap:anywhere;line-height:1.6}
+.tone-amber{color:var(--cola-syntax-number)}.tone-blue{color:var(--cola-syntax-variable)}.tone-purple{color:var(--cola-syntax-keyword)}.tone-green{color:var(--cola-syntax-string)}.tone-pink{color:var(--cola-accent)}
+@media(max-width:760px){.breadcrumb-workspace{display:none}.topbar{flex-wrap:nowrap;min-height:64px}.top-actions{flex-wrap:nowrap}.sidebar-bottom{padding-top:20px}}
