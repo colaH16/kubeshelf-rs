@@ -27,12 +27,19 @@
     <a class="ch-brand" href="https://cola16.app/" aria-label="cola16 기록 홈">cola16 <small>기록</small></a>
     <nav class="ch-links" aria-label="cola16의 공간"><a href="https://cola16.app/" aria-current="page">기록</a>…</nav>
   </header>
-  <div slot="account"><!-- 선택: 사이트가 소유하는 로그인/로그아웃 --></div>
+  <!-- 선택: 사이트가 소유하는 로그인/로그아웃. 래퍼 없이 요소의 직접 자식으로 둡니다. -->
+  <a id="login" slot="account" href="/auth/login" hidden>로그인</a>
+  <button id="logout" slot="account" type="button" hidden>로그아웃</button>
 </cola-header>
 ```
 
 - 다른 출처의 CSS를 `<link rel="stylesheet">`로 걸지 않습니다. 렌더링을 막아 KubeShelf가 느리거나 멈추면 소비 사이트의 첫 화면도 멈춥니다. 대체 CSS는 로컬 사본으로 두고, 스크립트는 `async`로 읽어 첫 화면과 `DOMContentLoaded`를 기다리게 하지 않습니다. 대체 CSS는 `cola-header:not(:defined)`에만 적용되므로, 요소가 정의된 뒤에는 오래된 사본이 새 스크립트의 Shadow DOM 스타일을 덮지 않습니다. KubeShelf 자신은 공급자와 같은 출처라 그대로 `<link>`와 `defer`를 씁니다.
 - 요소는 Shadow DOM 안에 직접 그리고 light DOM을 바꾸지 않습니다. React 같은 프레임워크가 기본 링크와 `slot="account"`를 계속 소유합니다. 같은 링크가 두 번 보이거나 키보드 순서에 두 번 들어가지 않습니다.
+- 계정 영역 `slot="account"`은 Shadow DOM에서 테마 버튼 **앞**에 있어 화면 순서와 키보드 순서가 같습니다(로그인/로그아웃 → 테마). 테마 버튼은 줄바꿈 없이 항상 오른쪽 끝(모바일 16px, 데스크톱 1440px 안 32px)에 있어 로그인 여부와 사이트에 관계없이 같은 자리입니다.
+  - 로그인/로그아웃은 `slot="account"`을 단 `<a>` 또는 `<button>` **직접 자식**으로 둡니다. 공통 CSS가 한 가지 모양(14px·600, 높이 44px, 좌우 12px, `--cola-border` 1px 테두리, 4px 모서리, `--cola-surface` 배경, 밑줄 없음, 공통 포커스·hover·disabled)을 `!important`로 정하므로 사이트 CSS의 버튼·링크 규칙이 덮지 못합니다. 사이트는 이 요소에 버튼 클래스·아이콘·스타일을 붙이지 않습니다. 문구는 `로그인`/`로그아웃`입니다.
+  - `hidden`은 항상 숨김입니다. 세션 확인 전에는 둘 다 `hidden`으로 두고 사이트 JS가 하나만 보입니다. id·href(`next` 포함)·이벤트 리스너는 사이트 것이고 공통 코드는 light DOM을 옮기거나 바꾸지 않습니다.
+  - 다른 자식(배지 묶음, v1의 `<div slot="account">` 래퍼)도 계속 받습니다. 줄로 배치만 하고 모양은 사이트가 정합니다. 래퍼 안의 링크·버튼에는 공통 버튼 모양이 적용되지 않습니다. KubeShelf는 DEMO·관리자 배지를 `.cola-badges` 묶음으로 따로 넣고(모바일에서는 숨김), 로그인/로그아웃은 직접 자식입니다.
+  - 대체 표시(요소 정의 전·JS 없음)에서도 직접 자식 로그인/로그아웃은 같은 모양으로 헤더 첫 줄 오른쪽 끝에 놓여 헤더 높이가 바뀌지 않습니다. 테마 버튼은 JS가 필요해 대체 표시에는 없습니다.
 - 글꼴(시스템 글꼴 스택), 크기, 간격, 44px 조작 영역, 최대 폭 1440px, 모바일 배치는 공통 CSS가 정합니다. 사이트 CSS는 헤더 내부에 적용되지 않고 색 토큰 `--cola-*`만 이어받습니다. 고정(sticky) 여부 같은 배치는 사이트가 `cola-header`에 지정합니다.
 - 메뉴는 내장 기본값으로 즉시 그린 뒤 `/branding/navigation.json`을 `credentials:'omit'`, 3초 제한으로 읽습니다. 버전·배열·HTTPS 링크를 모두 검증하고 실패하면 기본값을 유지합니다. 텍스트는 `textContent`로만 넣습니다.
 - 본문 바로가기는 Shadow DOM 안에 있어 일반 `#main` 이동으로는 포커스가 사이트의 `<body>`에 남습니다. 그래서 요소가 사이트 문서의 `#main`에 직접 포커스를 주고, 고정(sticky/fixed) 헤더와 사이트의 `scroll-padding-top` 중 큰 값만큼 아래에 맞춰 스크롤합니다. 포커스할 수 없는 `<main>`에는 임시로 `tabindex="-1"`을 붙였다가 포커스가 떠나면 지웁니다. 사이트가 둔 `tabindex`는 건드리지 않습니다. 주소의 `#main`은 바꾸지 않습니다. 사이트는 `id="main"`을 하나 두고 별도 바로가기 링크를 두지 않습니다.
@@ -63,3 +70,8 @@ JavaScript가 꺼져 있거나 공급자에 닿지 못할 때만 각 사이트�
 - WordPress·포트폴리오: GitOps 저장소의 `scripts/branding/cola-header.vendored.css`(원본 해시 기록)를 `build.py`가 테마 `style.css`와 포트폴리오의 `COLA_HEADER` 영역에 넣습니다. 맞추고 싶을 때만 `npm --prefix web run build` 뒤 `python3 -I scripts/branding/vendor-header-css.py <kubeshelf-rs>/web/dist/branding/v1/cola-header.css`, `python3 -I scripts/branding/build.py`를 실행해 배포합니다. 평소 `build.py`는 네트워크나 작업 경로 없이 같은 결과를 냅니다. 대체 링크는 `functions.php`의 `[cola_header]`와 포트폴리오 HTML에 있는 메뉴 사본이며, 같은 방식으로 필요할 때 맞춥니다.
 
 RAG(노트 검색·원문 `notes`, 노트 지도 `graph`)도 같은 방식으로 연결했습니다. 대체 CSS 사본(`<style>` 또는 같은 출처 파일)과 `async` `<script>`, `current="notes"`/`"graph"` 요소를 넣고, 로그인은 `slot="account"`에 둡니다. CSP의 `script-src`·`connect-src`에 `https://apps.cola16.app`을 추가합니다. 엄격한 `style-src`에서는 대체 CSS를 같은 출처 파일로 두면 `'self'`만으로 됩니다. Shadow DOM 스타일은 `adoptedStyleSheets`로 넣어 `style-src`의 영향을 받지 않습니다. 이를 지원하지 않는 브라우저에서만 Shadow DOM 안에 `<style>`을 만듭니다. 중복 지식 지도 링크는 제거하고, PUBLIC LIBRARY는 헤더 아래 본문으로 옮깁니다. iframe이나 별도 메뉴 서비스는 쓰지 않습니다.
+
+
+### 계정 버튼 보정 운영 반영
+
+2026-10-31 사용자 요청에 따라 로그인/로그아웃→테마 아이콘 순서와 공통 버튼 스타일을 운영에 반영했다. 런타임 소스 `4b569b1b6a1a39e2a313b23bbd3928adffbd22e2`, 이미지 `sha256:b5990accfe8cdc9b872ce81c8677308c005f90ff0189640ea3dd97b6fe658f12` ([CI](https://github.com/colaH16/kubeshelf-rs/actions/runs/41206483339)). 앞선 소스08252a3/이미지24aaa6a 기록은 최초 V7 배포 이력이다. 한글 폰트 미리보기100조합·제공 실패40조합·실운영30조합에서 검수했고 기존 카탈로그·Git 설정·개인 파일 수는 동일하다. GitOps `scripts/branding/shared-header-account-verification.json`을 현재 보정 기록으로 따른다.
