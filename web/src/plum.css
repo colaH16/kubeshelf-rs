@@ -153,3 +153,6 @@ html[data-brand="cola16"] .tone-amber{color:var(--cola-syntax-number)}html[data-
 html[data-brand="cola16"] .modal .save-note{max-width:none}
 
 html[data-brand="cola16"] .has-default-changes .content-shell main{padding-bottom:calc(var(--personal-save-height,190px) + 48px + env(safe-area-inset-bottom))}
+/* Production build IDs are long; they must not widen the mobile layout viewport. */
+html[data-brand="cola16"] .page-footer>span:first-child{min-width:0;max-width:100%;flex-wrap:wrap;overflow-wrap:anywhere}
+html[data-brand="cola16"] .page-footer .muted{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:break-all}

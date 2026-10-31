@@ -57,3 +57,6 @@ input:not([type=checkbox]):not([type=radio]){min-height:44px!important}
 .modal .save-note{max-width:none}
 
 .has-default-changes .content-shell main{padding-bottom:calc(var(--personal-save-height,190px) + 48px + env(safe-area-inset-bottom))}
+/* Production build IDs are long; they must not widen the mobile layout viewport. */
+.page-footer>span:first-child{min-width:0;max-width:100%;flex-wrap:wrap;overflow-wrap:anywhere}
+.page-footer .muted{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:break-all}
