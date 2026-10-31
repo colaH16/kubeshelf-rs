@@ -13,7 +13,7 @@
 - 원본: `colaH16/KubeShelf` 커밋 `957bdd081db04ea2a205672e5f8e4d968c5ed193` (차트/앱 버전 0.1.12).
 - HTTP 경로·메서드·상태 코드·JSON 형식, `KUBESHELF_*` 환경 변수, Git 매니페스트 형식, 설정·즐겨찾기 버전 해시(SHA-256)를
   원본과 같게 유지합니다. 같은 Git 저장소와 같은 Helm 차트(0.1.12, 이미지만 교체)로 교체 배포하는 것이 목표입니다.
-- `web/`의 프런트엔드(React)는 원본 코드를 그대로 가져왔습니다. 바뀐 것은 `web/vite.config.ts`의 빌드 출력 경로
+- Rust 전환 시 `web/`의 프런트엔드(React)는 원본 코드를 그대로 가져왔습니다. 후속 작업으로 선택적 cola16 플럼 테마와 접근성·가독성 개선을 추가했습니다. 전환 당시 바뀐 것은 `web/vite.config.ts`의 빌드 출력 경로
   (`../internal/webassets/dist` → `dist`) 하나뿐입니다. 원본은 프런트엔드를 Go 바이너리에 포함했지만, 이 포팅은
   `KUBESHELF_STATIC_DIR` 디렉터리에서 제공합니다.
 - `charts/kubeshelf/`는 원본 0.1.12 차트를 바이트 단위로 그대로 복사한 **호환성 기준 차트**입니다(기본 이미지도 원본 그대로).
@@ -80,3 +80,21 @@ scripts/        build_reference.py (고정 커밋의 원본으로 Go 오라클 �
 charts/         원본 0.1.12 Helm 차트 (호환성 기준, 수정 없음)
 Dockerfile      CI가 만든 네이티브 바이너리 + web/dist만 담는 Ubuntu 24.04 런타임 이미지
 ```
+
+
+## cola16 플럼 테마
+
+`apps.cola16.app`에서 선택적 플럼 테마를 사용합니다. 다른 호스트의 기본 색상은 유지되며,
+`?brand=cola16`으로 명시적으로 미리 볼 수 있습니다. 테마 선택은 자동/라이트/다크이며
+`cola-theme`에 저장합니다. 저장이 막혀도 현재 화면에는 적용하고 안내를 표시합니다.
+웹폰트나 외부 UI 라이브러리는 새로 내려받지 않습니다.
+
+`web/src/plum.tokens.json`은 디자인 토큰 원본입니다. `plum-layout.css`는 제품 레이아웃,
+`web/scripts/build-plum.cjs`는 기존 CSS를 범위가 제한된 색상 레이어로 생성합니다.
+기존 CSS나 토큰/레이아웃 변경 뒤 저장소 루트에서 `node web/scripts/build-plum.cjs`를 실행하고
+`npm --prefix web run build`로 확인합니다. 생성된 `plum.css`도 Git으로 관리합니다.
+
+서비스 탐색·즐겨찾기·접속 노드·Git 저장 및 적용 상태는 기존 API를 사용합니다.
+색뿐인 준비 점에 문구를 추가하고 항상 표시되던 전체 `Ready`는 중립적인 설명으로 바꿨습니다.
+실제 `updatedAt`과 실패 후 이전 조회 결과를 구별합니다. 준비 상태는 웹 HTTP 응답 보장이 아닙니다.
+cola16 공간 메뉴와 푸터에서 기록·포트폴리오·노트 검색·노트 지도로 돌아갈 수 있습니다.
