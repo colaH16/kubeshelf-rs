@@ -6,6 +6,8 @@
  * The element renders into its own shadow root and never changes its light DOM, so host
  * frameworks keep ownership of the fallback links and of the optional slot="account".
  * Light-DOM children other than the account slot are not rendered once it is defined.
+ * The account slot comes before the theme button (same visual and keyboard order), so the
+ * theme button keeps its place at the right edge with or without a login control.
  * Only public link data is fetched (credentials omitted); accounts stay in each host. */
 (() => {
   'use strict';
@@ -20,7 +22,7 @@
     light: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
     dark: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
   };
-  const SHELL = '<a class="ch-skip" href="#main">본문 바로가기</a><header class="ch-bar"><a class="ch-brand"></a><nav class="ch-links" aria-label="cola16의 공간"></nav><div class="ch-actions"><button class="ch-theme" type="button"></button><slot name="account"></slot></div><p class="ch-status ch-sr" role="status"></p></header>';
+  const SHELL = '<a class="ch-skip" href="#main">본문 바로가기</a><header class="ch-bar"><a class="ch-brand"></a><nav class="ch-links" aria-label="cola16의 공간"></nav><div class="ch-actions"><slot name="account"></slot><button class="ch-theme" type="button"></button></div><p class="ch-status ch-sr" role="status"></p></header>';
   const root = document.documentElement;
   const media = matchMedia('(prefers-color-scheme:dark)');
   const source = document.currentScript && document.currentScript.src;

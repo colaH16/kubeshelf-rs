@@ -152,18 +152,15 @@ html[data-brand="cola16"] .page-footer>span:first-child{min-width:0;max-width:10
 html[data-brand="cola16"] .page-footer .muted{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:break-all}
 
 /* Shared cola16 header (<cola-header>, styled by /branding/v1/cola-header.css).
-   KubeShelf owns only its placement and the account slot contents. */
+   KubeShelf owns only its placement and the account slot contents: the badge group
+   (styled here) and the login/logout control (styled by the header). */
 html[data-brand="cola16"] .app-shell{display:block}
 html[data-brand="cola16"] cola-header{position:sticky;top:0;z-index:30}
-html[data-brand="cola16"] .cola-account .button{min-height:44px}
 html[data-brand="cola16"] .sidebar{top:var(--cola-header-height,77px)}
 html[data-brand="cola16"] .topbar{min-height:48px;padding-block:2px;background:var(--cola-bg)}
-@media(min-width:761px) and (max-width:1100px){html[data-brand="cola16"] .cola-account .admin-badge{display:none}}
+@media(min-width:761px) and (max-width:1100px){html[data-brand="cola16"] cola-header .cola-badges .admin-badge{display:none}}
 @media(max-width:760px){
- html[data-brand="cola16"] .cola-account{max-width:168px}
- html[data-brand="cola16"] .cola-account .admin-badge,html[data-brand="cola16"] .cola-account .demo-badge{display:none}
- html[data-brand="cola16"] .cola-account .button{padding:8px 10px}
- html[data-brand="cola16"] .cola-account .button svg{display:none}
+ html[data-brand="cola16"] cola-header .cola-badges{display:none}
  html[data-brand="cola16"] .sidebar{top:0;z-index:40}
  html[data-brand="cola16"] .sidebar-shade{z-index:35}
  html[data-brand="cola16"] .topbar{min-height:44px;padding-block:0}

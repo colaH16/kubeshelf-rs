@@ -56,18 +56,15 @@ input:not([type=checkbox]):not([type=radio]){min-height:44px!important}
 .page-footer .muted{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:break-all}
 
 /* Shared cola16 header (<cola-header>, styled by /branding/v1/cola-header.css).
-   KubeShelf owns only its placement and the account slot contents. */
+   KubeShelf owns only its placement and the account slot contents: the badge group
+   (styled here) and the login/logout control (styled by the header). */
 .app-shell{display:block}
 cola-header{position:sticky;top:0;z-index:30}
-.cola-account .button{min-height:44px}
 .sidebar{top:var(--cola-header-height,77px)}
 .topbar{min-height:48px;padding-block:2px;background:var(--cola-bg)}
-@media(min-width:761px) and (max-width:1100px){.cola-account .admin-badge{display:none}}
+@media(min-width:761px) and (max-width:1100px){cola-header .cola-badges .admin-badge{display:none}}
 @media(max-width:760px){
- .cola-account{max-width:168px}
- .cola-account .admin-badge,.cola-account .demo-badge{display:none}
- .cola-account .button{padding:8px 10px}
- .cola-account .button svg{display:none}
+ cola-header .cola-badges{display:none}
  .sidebar{top:0;z-index:40}
  .sidebar-shade{z-index:35}
  .topbar{min-height:44px;padding-block:0}

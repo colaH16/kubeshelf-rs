@@ -7,11 +7,13 @@ type ColaHeaderProps = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElemen
 declare module 'react' { namespace JSX { interface IntrinsicElements { 'cola-header': ColaHeaderProps } } }
 
 // Shared cola16 header (/branding/v1/cola-header.js). The element renders its own
-// shadow tree; React owns only the no-script fallback and the account slot.
+// shadow tree; React owns only the no-script fallback and the account slot. Children
+// carry slot="account" themselves: the login/logout <a>/<button> is a direct slot child
+// so the header gives it the shared account button style.
 export function BrandHeader({ ref, inert, children }: { ref: Ref<HTMLElement>; inert: boolean; children: ReactNode }) {
   return <cola-header ref={ref} current="tools" subtitle="도구" home="https://apps.cola16.app/" inert={inert}>
     <a className="ch-skip" href="#main">본문 바로가기</a>
     <header className="ch-bar"><a className="ch-brand" href="https://apps.cola16.app/" aria-label="cola16 도구 홈">cola16 <small>도구</small></a><nav className="ch-links" aria-label="cola16의 공간">{navigation.items.map(item => <a key={item.id} href={item.href} aria-current={item.id === 'tools' ? 'page' : undefined}>{item.label}</a>)}</nav></header>
-    <div slot="account" className="cola-account">{children}</div>
+    {children}
   </cola-header>;
 }

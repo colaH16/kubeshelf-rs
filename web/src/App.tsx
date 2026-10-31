@@ -185,7 +185,8 @@ export default function App() {
   return <div className={'app-shell' + (favorites.dirty ? ' has-default-changes' : '')}>
     {!colaBrand && <a className="skip-content" href="#main" inert={mobile}>본문 바로가기</a>}
     {colaBrand && <BrandHeader ref={brandHeader} inert={mobile || !!editor || !!favoriteEditor}>
-      {catalog?.demo && <span className="demo-badge">DEMO</span>}{catalog?.identity.admin && <span className="admin-badge"><ShieldCheck size={14}/>관리자</span>}{catalog?.identity.subject ? <button className="button secondary small" disabled={choiceBusy} onClick={() => void logout()}><LogOut size={15}/>로그아웃</button> : <a className="button secondary small" href={loginURL}><LogIn size={15}/>로그인</a>}
+      {(catalog?.demo || catalog?.identity.admin) && <span slot="account" className="cola-badges">{catalog.demo && <span className="demo-badge">DEMO</span>}{catalog.identity.admin && <span className="admin-badge"><ShieldCheck size={14}/>관리자</span>}</span>}
+      {catalog?.identity.subject ? <button slot="account" type="button" disabled={choiceBusy} onClick={() => void logout()}>로그아웃</button> : <a slot="account" href={loginURL}>로그인</a>}
     </BrandHeader>}
 
     {mobile && <div className="sidebar-shade" onClick={() => setMobile(false)}/>}

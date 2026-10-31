@@ -1,5 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { describe, expect, it, vi } from 'vitest';
 import source from './cola-header.js?raw';
+import css from './cola-header.css?raw';
 import manifest from './cola16-navigation.json';
 
 type Item = { id: string; label: string; href: string };
@@ -99,5 +102,32 @@ describe('shared header skip link', () => {
     target.blur();
     expect(target.attributes.get('tabindex')).toBe('-1');
     expect(page.scrolled).toEqual([323]);
+  });
+});
+
+describe('shared header account slot', () => {
+  const rule = (selector: string) => css.split('\n').find(line => line.startsWith(selector + '{'));
+  it('comes before the theme button, so keyboard order matches the visual order', () => {
+    const shell = /const SHELL = '(.*)';/.exec(source)?.[1] ?? '';
+    expect(/<div class="ch-actions">(.*?)<\/div>/.exec(shell)?.[1]).toBe('<slot name="account"></slot><button class="ch-theme" type="button"></button>');
+    expect(rule('.ch-actions')).toContain('flex-wrap:nowrap');
+    expect(rule('.ch-theme')).toContain('flex:none');
+  });
+  it('gives a direct login/logout <a> or <button> one look that host CSS cannot override', () => {
+    const control = rule('::slotted(a[slot=account]),::slotted(button[slot=account])') ?? '';
+    for (const declaration of ['height:44px!important', 'padding:0 12px!important', 'border:1px solid var(--cola-border,#826B79)!important', 'border-radius:4px!important',
+      'background:var(--cola-surface,#FEFBFC)!important', 'font-size:14px!important', 'font-weight:600!important', 'text-decoration:none!important']) {
+      expect(control).toContain(declaration);
+    }
+    // Sites reveal the right control by toggling `hidden`; the shared style must not undo that.
+    expect(rule('::slotted([slot=account][hidden])')).toBe('::slotted([slot=account][hidden]){display:none!important}');
+  });
+  it('lets KubeShelf pass its slot children through unwrapped', async () => {
+    vi.stubGlobal('document', { documentElement: { dataset: {} } });
+    const { BrandHeader } = await import('./BrandHeader');
+    vi.unstubAllGlobals();
+    const children = [createElement('span', { key: 'badges', slot: 'account', className: 'cola-badges' }), createElement('a', { key: 'login', slot: 'account', href: '/auth/login' }, '로그인')];
+    const html = renderToStaticMarkup(createElement(BrandHeader, { ref: null, inert: false, children }));
+    expect(html).toMatch(/<\/header><span slot="account" class="cola-badges"><\/span><a slot="account" href="\/auth\/login">로그인<\/a><\/cola-header>$/);
   });
 });
