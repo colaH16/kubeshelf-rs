@@ -90,7 +90,7 @@ Dockerfile      CI가 만든 네이티브 바이너리 + web/dist만 담는 Ubun
 웹폰트나 외부 UI 라이브러리는 새로 내려받지 않습니다.
 
 `web/src/plum.tokens.json`은 디자인 토큰 원본입니다. 값은 2026-10-31 사용자가 승인한 V7 미리보기의
-플럼 라이트·다크 전체입니다(V4에서 다크 배경 5역할은 V6, 다크 강조 4역할은 V7). 운영 배포는 아직입니다.
+플럼 라이트·다크 전체입니다(V4에서 다크 배경 5역할은 V6, 다크 강조 4역할은 V7). 2026-10-31 운영에 반영했고 공통 헤더 계약의 현재 소비자·검수 기록을 따릅니다.
 다크 `theme-color`(`#191719`)는 `web/public/theme-init.js`와 `web/src/cola-header.js`에도 같은 값으로 있습니다. `plum-layout.css`는 제품 레이아웃,
 `web/scripts/build-plum.cjs`는 기존 CSS를 범위가 제한된 색상 레이어로 생성합니다.
 `npm --prefix web run build`가 prebuild에서 색상 레이어를 자동으로 재생성합니다. 저장소 루트의 `node web/scripts/build-plum.cjs`로도 생성할 수 있습니다. 생성된 `plum.css`도 Git으로 관리합니다.

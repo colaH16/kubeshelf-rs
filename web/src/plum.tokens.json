@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "cola16-plum-v1",
   "revision": "user-approved-V7",
-  "status": "user-approved-2026-10-31; production deployment pending",
+  "status": "user-approved-V7; deployed and UI-verified 2026-10-31",
   "approvedOn": "2026-10-31",
   "source": "Branding/design-handoff-2026-10-31/previews/palette-preview-v7.tokens.json",
   "sourcePointer": "palettes.plum",

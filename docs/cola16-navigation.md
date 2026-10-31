@@ -45,11 +45,13 @@
 
 위 세 경로의 GET/HEAD에만 `Access-Control-Allow-Origin: *`를 붙입니다. 성공(또는 304) 응답에는 `Cache-Control: public, max-age=300`과 같은 값의 CDN 헤더를 붙이고 `Vary: Cookie`는 붙이지 않습니다. 그 밖의 모든 응답(API, 인증, 즐겨찾기, 앱 화면, 없는 파일)은 기존 `private, no-store`, CSRF, 쿠키, 보안 헤더를 그대로 유지합니다. 경계 테스트는 `src/http.rs`의 `cross_origin_reads_and_caching_are_limited_to_public_branding_files`입니다.
 
-공통 코드는 연결한 모든 사이트의 권한으로 실행됩니다. 따라서 KubeShelf 이미지의 무결성이 세 사이트 모두에 영향을 줍니다. 자주 바꾸지 않고, 바꿀 때는 CI와 이미지 검수를 거칩니다.
+공통 코드는 연결한 모든 사이트의 권한으로 실행됩니다. 따라서 KubeShelf 이미지의 무결성이 연결된 웹사이트 모두에 영향을 줍니다. 자주 바꾸지 않고, 바꿀 때는 CI와 이미지 검수를 거칩니다.
 
-## 현재 소비자와 RAG 후속
+## 현재 소비자와 운영 반영 (2026-10-31)
 
-이번 구현의 연결 대상은 WordPress(`current="blog"`), 포트폴리오(`portfolio`), KubeShelf(`tools`)입니다. **현재 공통 UI 변경은 소스·미리보기 검수까지 준비됐고 운영에는 아직 배포하지 않았습니다.** 운영 JSON 소비자는 직전 배포의 KubeShelf뿐이며, WordPress·포트폴리오도 이미 연결됐다는 뜻이 아닙니다. 색상은 2026-10-31 사용자가 V7 플럼을 승인해 소스(`web/src/plum.tokens.json`, GitOps `plum.colors.json`)에 반영했고 역시 운영 배포 전입니다. 배포는 제공 앱 KubeShelf 이미지가 먼저이고, 공개 자산을 확인한 뒤 소비 사이트를 배포합니다.
+현재 소비자는 WordPress(`blog`), 포트폴리오(`portfolio`), KubeShelf(`tools`), RAG 검색·원문(`notes`), RAG 지도(`graph`)입니다. 사용자 승인 V7 플럼과 공통 헤더를 운영에 반영했습니다. KubeShelf 제공 이미지가 먼저 Ready·공개 자산200이 된 뒤 소비 사이트를 배포했습니다.
+
+제공 앱 소스는 `08252a326980cd54944dde2b740fd5e42b739f94`, 운영 이미지는 `sha256:24aaa6af684e877970c00bc83e3b52d453a1bfea4fc8d2d3d120e9dd55584c4e`이며 [두 아키텍처 CI](https://github.com/colaH16/kubeshelf-rs/actions/runs/41188901164)를 통과했습니다. 소비 사이트 포함 운영36화면에서 글꼴·위치·헤더 높이·테마 순환·모바일 넘침을 비교했고 공개 원문6조합도 확인했습니다. 미리보기80조합은 공개/소유자·CSP·키보드·저장 실패를 포함합니다. GitOps `scripts/branding/shared-header-v7-verification.json`이 실제 배포·보존·제약 기록입니다. Safari/iOS 실기와 최신 릴리스의 실제 사용자 CAPTCHA 성공은 별도입니다. KubeShelf 공개 카탈로그·Git 설정·개인 설정 파일 수는 전후 동일합니다.
 
 공통 헤더 JS/CSS가 공유하는 것은 UI와 메뉴 JSON입니다. 색 토큰 `--cola-*`는 각 사이트가 자기 CSS로 정의하고 헤더는 이를 이어받기만 합니다. 그래서 색을 바꾸면 사이트마다 토큰을 갱신해 배포해야 합니다. 로그인·계정도 각 사이트가 따로 소유합니다.
 
@@ -60,4 +62,4 @@ JavaScript가 꺼져 있거나 공급자에 닿지 못할 때만 각 사이트�
 - KubeShelf: 같은 빌드에서 만들어지므로 항상 같습니다.
 - WordPress·포트폴리오: GitOps 저장소의 `scripts/branding/cola-header.vendored.css`(원본 해시 기록)를 `build.py`가 테마 `style.css`와 포트폴리오의 `COLA_HEADER` 영역에 넣습니다. 맞추고 싶을 때만 `npm --prefix web run build` 뒤 `python3 -I scripts/branding/vendor-header-css.py <kubeshelf-rs>/web/dist/branding/v1/cola-header.css`, `python3 -I scripts/branding/build.py`를 실행해 배포합니다. 평소 `build.py`는 네트워크나 작업 경로 없이 같은 결과를 냅니다. 대체 링크는 `functions.php`의 `[cola_header]`와 포트폴리오 HTML에 있는 메뉴 사본이며, 같은 방식으로 필요할 때 맞춥니다.
 
-RAG(노트 검색 `notes`, 노트 지도 `graph`)는 연결이 승인됐고 별도 작업자가 RAG 원본에서 구현 중입니다. 같은 방식으로 연결합니다. 대체 CSS 사본(`<style>` 또는 같은 출처 파일)과 `async` `<script>`, `current="notes"`/`"graph"` 요소를 넣고, 로그인은 `slot="account"`에 둡니다. CSP의 `script-src`·`connect-src`에 `https://apps.cola16.app`을 추가합니다. 엄격한 `style-src`에서는 대체 CSS를 같은 출처 파일로 두면 `'self'`만으로 됩니다. Shadow DOM 스타일은 `adoptedStyleSheets`로 넣어 `style-src`의 영향을 받지 않습니다. 이를 지원하지 않는 브라우저에서만 Shadow DOM 안에 `<style>`을 만듭니다. 중복 지식 지도 링크는 제거하고, PUBLIC LIBRARY는 헤더 아래 본문으로 옮깁니다. iframe이나 별도 메뉴 서비스는 쓰지 않습니다.
+RAG(노트 검색·원문 `notes`, 노트 지도 `graph`)도 같은 방식으로 연결했습니다. 대체 CSS 사본(`<style>` 또는 같은 출처 파일)과 `async` `<script>`, `current="notes"`/`"graph"` 요소를 넣고, 로그인은 `slot="account"`에 둡니다. CSP의 `script-src`·`connect-src`에 `https://apps.cola16.app`을 추가합니다. 엄격한 `style-src`에서는 대체 CSS를 같은 출처 파일로 두면 `'self'`만으로 됩니다. Shadow DOM 스타일은 `adoptedStyleSheets`로 넣어 `style-src`의 영향을 받지 않습니다. 이를 지원하지 않는 브라우저에서만 Shadow DOM 안에 `<style>`을 만듭니다. 중복 지식 지도 링크는 제거하고, PUBLIC LIBRARY는 헤더 아래 본문으로 옮깁니다. iframe이나 별도 메뉴 서비스는 쓰지 않습니다.
