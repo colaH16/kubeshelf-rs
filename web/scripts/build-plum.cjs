@@ -2,6 +2,9 @@
 // Original installations keep their default style; cola16 explicitly opts in.
 const fs=require('fs'),postcss=require('postcss');
 process.chdir(require('path').resolve(__dirname,'../..'));
+// One editable manifest supplies both the immediate fallback and public consumers.
+fs.mkdirSync('web/public/branding',{recursive:true});
+fs.copyFileSync('web/src/cola16-navigation.json','web/public/branding/navigation.json');
 const base=postcss.parse(fs.readFileSync('web/src/style.css','utf8'));
 function color(hex,prop){
  let s=hex.slice(1);if(s.length===3||s.length===4)s=s.split('').map(x=>x+x).join('');

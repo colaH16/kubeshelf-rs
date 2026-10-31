@@ -165,6 +165,13 @@ fn conflict_or(e: &anyhow::Error, fallback: u16) -> u16 {
 }
 
 async fn security_headers(request: Request, next: Next) -> Response {
+    // This one static, public link manifest can be read by the other cola16 sites.
+    // API/auth responses retain their original same-origin boundary and headers.
+    let public_navigation = request.uri().path() == "/branding/navigation.json"
+        && matches!(
+            *request.method(),
+            axum::http::Method::GET | axum::http::Method::HEAD
+        );
     let mut response = next.run(request).await;
     let h = response.headers_mut();
     for (k, v) in [
@@ -179,6 +186,12 @@ async fn security_headers(request: Request, next: Next) -> Response {
         ("content-security-policy", CSP),
     ] {
         h.insert(k, HeaderValue::from_static(v));
+    }
+    if public_navigation {
+        h.insert(
+            header::ACCESS_CONTROL_ALLOW_ORIGIN,
+            HeaderValue::from_static("*"),
+        );
     }
     response
 }
@@ -617,6 +630,46 @@ pub async fn serve(
 mod tests {
     use super::*;
     use tower::ServiceExt;
+
+    #[tokio::test]
+    async fn cross_origin_reads_are_limited_to_the_public_navigation_file() {
+        let app = Router::new()
+            .fallback(|| async { "public fixture" })
+            .layer(middleware::from_fn(security_headers));
+        for (method, path, allowed) in [
+            ("GET", "/branding/navigation.json", true),
+            ("HEAD", "/branding/navigation.json", true),
+            ("GET", "/branding/navigation.json?v=1", true),
+            ("POST", "/branding/navigation.json", false),
+            ("GET", "/api/catalog", false),
+            ("GET", "/api/me/favorites", false),
+            ("GET", "/auth/login", false),
+            ("GET", "/branding/navigation.json/other", false),
+        ] {
+            let request = Request::builder()
+                .method(method)
+                .uri(path)
+                .header(header::ORIGIN, "https://rag.cola16.app")
+                .body(Body::empty())
+                .unwrap();
+            let response = app.clone().oneshot(request).await.unwrap();
+            assert_eq!(
+                response
+                    .headers()
+                    .contains_key(header::ACCESS_CONTROL_ALLOW_ORIGIN),
+                allowed
+            );
+            assert!(
+                !response
+                    .headers()
+                    .contains_key(header::ACCESS_CONTROL_ALLOW_CREDENTIALS)
+            );
+            assert_eq!(
+                response.headers()[header::CACHE_CONTROL],
+                "private, no-store, max-age=0"
+            );
+        }
+    }
 
     async fn fixture() -> (App, Router) {
         let cfg = Config::from_lookup(|k, d| {
