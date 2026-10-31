@@ -183,3 +183,11 @@ html[data-brand="cola16"] .topbar{min-height:48px;padding-block:2px;background:v
  html[data-brand="cola16"] .page-heading{margin-bottom:16px}
  html[data-brand="cola16"] .toolbar{margin-bottom:16px}
 }
+
+/* The native skip link lands below the sticky global header. */
+html[data-brand="cola16"]{scroll-padding-top:calc(var(--cola-header-height,77px) + 16px)}
+@media(min-width:761px){html[data-brand="cola16"] .topbar{display:none}}
+html[data-brand="cola16"] .cola-nav a{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+
+/* On phones, scroll the full menu out of the way while using the app. */
+@media(max-width:760px){html[data-brand="cola16"] .cola-global-header{position:relative}html[data-brand="cola16"]{scroll-padding-top:16px}}

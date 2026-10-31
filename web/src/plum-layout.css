@@ -87,3 +87,11 @@ input:not([type=checkbox]):not([type=radio]){min-height:44px!important}
  .page-heading{margin-bottom:16px}
  .toolbar{margin-bottom:16px}
 }
+
+/* The native skip link lands below the sticky global header. */
+:root{scroll-padding-top:calc(var(--cola-header-height,77px) + 16px)}
+@media(min-width:761px){.topbar{display:none}}
+.cola-nav a{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+
+/* On phones, scroll the full menu out of the way while using the app. */
+@media(max-width:760px){.cola-global-header{position:relative}:root{scroll-padding-top:16px}}
