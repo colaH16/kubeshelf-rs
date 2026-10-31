@@ -3,9 +3,9 @@
 [KubeShelf](https://github.com/colaH16/KubeShelf)(Go)의 Rust 포팅입니다. Kubernetes Ingress·NodePort 서비스를 찾아
 한 화면(“선반”)에 모으고, 네임스페이스 기본값과 사용자·그룹별 공개 범위를 적용하며, 설정은 GitOps(Git 커밋 → Fleet 적용)로 관리합니다.
 
-> **상태 (2026-10-31)**: amd64·arm64 CI와 이미지 게시 완료. 실제 클러스터의 읽기 전용 시험 Pod에서
-> 기존 Go와 익명 카탈로그가 같고 화면·권한·OIDC 연결이 정상임을 확인했습니다. 운영 이미지 변경은 GitOps에 반영했지만,
-> 기존 인프라 의존성의 준비 상태 때문에 Fleet 적용을 기다리고 있습니다. **운영 교체 완료로 기록하지 않습니다.**
+> **상태 (2026-10-31)**: 개인 Kubernetes 클러스터에서 Rust 버전으로 운영 중입니다. amd64·arm64 CI와
+> 읽기 전용 실환경 비교를 거쳐 기존 Go 이미지에서 전환했습니다. 환경 변수·실행 인자·볼륨·서비스 계정 등 Pod 사양은
+> 그대로 유지하고 이미지만 바꿨습니다. 운영 Pod 1/1, 재시작 0, 기존 계정 3개·새 파일 생성 0을 확인했습니다.
 > [CI 실행](https://github.com/colaH16/kubeshelf-rs/actions/runs/41172859971) · [검증 기록](docs/validation.md)
 
 ## 원본과의 관계
