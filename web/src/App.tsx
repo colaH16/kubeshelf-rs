@@ -68,6 +68,14 @@ export default function App() {
   };
   const favorites = useFavorites(catalog?.identity.subject || '', catalog?.csrf || '', saving);
   const choiceBusy = saving || favorites.saving;
+  useEffect(() => {
+    if (!colaBrand || !favorites.dirty) return;
+    const bar = document.querySelector('.personal-save-bar');
+    if (!bar) return;
+    const measure = () => document.documentElement.style.setProperty('--personal-save-height', `${bar.getBoundingClientRect().height}px`);
+    measure(); const observer = new ResizeObserver(measure); observer.observe(bar);
+    return () => { observer.disconnect(); document.documentElement.style.removeProperty('--personal-save-height'); };
+  }, [favorites.dirty]);
   const account = !!catalog?.identity.subject;
   const preferredTarget = account ? favorites.state?.profile.defaultTarget : prefs.target;
   const selectedTarget = catalog?.targets.some(t => t.id === preferredTarget) ? preferredTarget! : firstTarget(catalog);

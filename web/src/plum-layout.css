@@ -55,3 +55,5 @@ input:not([type=checkbox]):not([type=radio]){min-height:44px!important}
 .tone-amber{color:var(--cola-syntax-number)}.tone-blue{color:var(--cola-syntax-variable)}.tone-purple{color:var(--cola-syntax-keyword)}.tone-green{color:var(--cola-syntax-string)}.tone-pink{color:var(--cola-accent)}
 @media(max-width:760px){.breadcrumb-workspace{display:none}.topbar{flex-wrap:nowrap;min-height:64px}.top-actions{flex-wrap:nowrap}.sidebar-bottom{padding-top:20px}}
 .modal .save-note{max-width:none}
+
+.has-default-changes .content-shell main{padding-bottom:calc(var(--personal-save-height,190px) + 48px + env(safe-area-inset-bottom))}
