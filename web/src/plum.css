@@ -150,3 +150,4 @@ html[data-brand="cola16"] .sidebar-brand-controls .creator-menu nav{position:sta
 html[data-brand="cola16"] .save-note{flex:1 1 150px;min-width:0;word-break:keep-all;overflow-wrap:anywhere;line-height:1.6}
 html[data-brand="cola16"] .tone-amber{color:var(--cola-syntax-number)}html[data-brand="cola16"] .tone-blue{color:var(--cola-syntax-variable)}html[data-brand="cola16"] .tone-purple{color:var(--cola-syntax-keyword)}html[data-brand="cola16"] .tone-green{color:var(--cola-syntax-string)}html[data-brand="cola16"] .tone-pink{color:var(--cola-accent)}
 @media(max-width:760px){html[data-brand="cola16"] .breadcrumb-workspace{display:none}html[data-brand="cola16"] .topbar{flex-wrap:nowrap;min-height:64px}html[data-brand="cola16"] .top-actions{flex-wrap:nowrap}html[data-brand="cola16"] .sidebar-bottom{padding-top:20px}}
+html[data-brand="cola16"] .modal .save-note{max-width:none}
