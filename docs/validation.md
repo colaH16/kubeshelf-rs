@@ -1,7 +1,7 @@
 # 검증 기록과 재개 메모
 
 마지막 실행: 2026-10-31, 로컬 Linux x86_64, Rust 1.99.1, Go 1.27.1(원본 오라클 빌드), Node 24.22.2.
-**배포는 하지 않았고, 운영 클러스터·Secret·kubectl·helm은 사용하지 않았습니다.**
+아래 최초 검증은 Claude가 로컬 모의 환경에서 수행했습니다. 이후 실클러스터 읽기 전용 검증 결과는 문서 마지막에 기록합니다.
 
 ## 실행한 명령과 결과
 
@@ -62,3 +62,16 @@ cargo build --locked && python3 tests/e2e.py
 
 차등 테스트가 실패하면 상세 내용이 `KUBESHELF_MISMATCH_FILE`(기본 `/tmp/kubeshelf-mismatch.json`)에 기록됩니다.
 새로운 의도적 차이를 추가할 때는 `tests/compare.py`의 `RUST_STRICTER`와 [compatibility.md](compatibility.md)를 함께 고치세요.
+
+## CI 및 읽기 전용 실클러스터 검증
+
+- 소스 `79ceafefcc2b239715a59c2ee5fc0cb5a745d89a`, [CI 41172859971](https://github.com/colaH16/kubeshelf-rs/actions/runs/41172859971): amd64·arm64 모두 성공, 통합 이미지 게시 및 익명 pull 확인.
+- 이미지: `ghcr.io/colah16/kubeshelf-rs@sha256:91b8198500845ac2f2a89062dec6d789dbcc0ded93e4a1bc2b9f137439424692`.
+- 릴리스 바이너리의 로컬 브라우저 포함 종단 간 검사 146개 통과.
+- 실제 기존 Secret 참조·환경 변수·서비스 계정·UID/GID 10001·읽기 전용 루트 파일시스템을 사용하되 서비스 선택자와 분리하고 `KUBESHELF_READ_ONLY=true`로 시험했습니다. Secret 값은 공개하지 않습니다.
+- readiness 통과. 익명 카탈로그는 버전·갱신 시각을 제외하면 Go와 동일(공개 카드 5개, 노드 대상 0개).
+- 상태 경로 2개, 화면 경로 5개, 카탈로그, 관리자 403, 로그인 필요 API 401, 실제 OIDC PKCE/state 로그인 리다이렉트 302 확인.
+- 실제 사용자 인증 완료·운영 설정 저장은 하지 않았습니다. 이 흐름의 저장·충돌·적용 경계는 로컬 모의 환경 검증입니다.
+- 운영 GitOps는 이미지 필드만 변경했습니다. 기존 sealed-secrets 컨트롤러가 준비되지 않아 Fleet가 의존성 검사에서 보류 중입니다. 기존 Go 서비스는 유지되며, **운영 전환 완료가 아닙니다**. 의존성 복구 후 Fleet 적용과 운영 확인이 남았습니다.
+
+위 “검증하지 못한 것” 목록은 최초 로컬 검증 시점의 기록이며, CI·이미지·브라우저·읽기 전용 실환경 항목은 이 추가 검증으로 해소됐습니다.
