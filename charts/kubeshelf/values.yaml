@@ -1,0 +1,53 @@
+# One writer; each successful settings save commits and pushes immediately.
+replicaCount: 1
+image:
+  repository: ghcr.io/colah16/kubeshelf
+  tag: "0.1.12"
+  digest: ""
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+publicURL: ""
+clusterName: cluster
+demo: false
+runtime:
+  # Owned by a separate GitOps configuration bundle, not by this chart.
+  existingConfigMap: kubeshelf-settings
+git:
+  url: ""
+  branch: main
+  manifestPath: runtime/settings.yaml
+  existingSecret: kubeshelf-config-git
+  knownHostsConfigMap: kubeshelf-git-known-hosts
+auth:
+  issuer: ""
+  clientID: ""
+  adminSubjects: []
+  existingSecret: kubeshelf-auth
+  directoryURL: ""
+ingressSchemes: {}
+serviceAccount:
+  create: true
+  name: ""
+rbac:
+  create: true
+service:
+  port: 80
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: ""
+  tls: []
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+affinity: {}
+nodeSelector: {}
+tolerations: []
+podAnnotations: {}

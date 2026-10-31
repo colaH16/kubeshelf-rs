@@ -1,0 +1,5 @@
+# Whitelist: the image contains only the prebuilt binary and frontend.
+*
+!target/release/kubeshelf-rs
+!web/dist
+!web/dist/**

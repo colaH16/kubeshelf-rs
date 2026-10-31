@@ -1,0 +1,38 @@
+[package]
+name = "kubeshelf-rs"
+description = "Rust port of KubeShelf, a Kubernetes-aware app shelf with GitOps-managed settings"
+repository = "https://github.com/colaH16/kubeshelf-rs"
+default-run = "kubeshelf-rs"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+publish = false
+
+[dependencies]
+anyhow = "1"
+axum = "0.8"
+chrono = { version = "0.4", features = ["serde"] }
+futures = "0.3"
+hex = "0.4"
+hyper = { version = "1", features = ["http1", "server"] }
+hyper-util = { version = "0.1", features = ["tokio", "server", "server-graceful", "service"] }
+kube = { version = "4.2", features = ["runtime", "client", "rustls-tls"] }
+k8s-openapi = { version = "0.28", features = ["v1_35"] }
+openidconnect = "4"
+rand = "0.9"
+regex = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+sha2 = "0.10"
+tokio = { version = "1", features = ["full"] }
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.6", features = ["fs", "timeout"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = "2"
+[dev-dependencies]
+tempfile = "3"
+[profile.release]
+lto = "thin"
+strip = true

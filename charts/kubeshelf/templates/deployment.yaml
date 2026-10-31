@@ -1,0 +1,149 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kubeshelf.fullname" . }}
+  labels:
+    {{- include "kubeshelf.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "kubeshelf.selector" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "kubeshelf.selector" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "kubeshelf.serviceAccount" . }}
+      automountServiceAccountToken: {{ not .Values.demo }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: kubeshelf
+          image: {{ if .Values.image.digest }}{{ printf "%s@%s" .Values.image.repository .Values.image.digest | quote }}{{ else }}{{ printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) | quote }}{{ end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: KUBESHELF_PUBLIC_URL
+              value: {{ .Values.publicURL | quote }}
+            - name: KUBESHELF_CLUSTER_NAME
+              value: {{ .Values.clusterName | quote }}
+            - name: KUBESHELF_DEMO
+              value: {{ .Values.demo | quote }}
+            - name: KUBESHELF_INGRESS_SCHEMES
+              value: {{ .Values.ingressSchemes | toJson | quote }}
+            - name: KUBESHELF_CONFIGMAP_NAME
+              value: {{ .Values.runtime.existingConfigMap | quote }}
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: KUBESHELF_GIT_URL
+              value: {{ .Values.git.url | quote }}
+            - name: KUBESHELF_GIT_BRANCH
+              value: {{ .Values.git.branch | quote }}
+            - name: KUBESHELF_GIT_PATH
+              value: {{ .Values.git.manifestPath | quote }}
+            - name: KUBESHELF_OIDC_ISSUER
+              value: {{ .Values.auth.issuer | quote }}
+            - name: KUBESHELF_OIDC_CLIENT_ID
+              value: {{ .Values.auth.clientID | quote }}
+            - name: KUBESHELF_ADMIN_SUBJECTS
+              value: {{ join "," .Values.auth.adminSubjects | quote }}
+            - name: KUBESHELF_DIRECTORY_URL
+              value: {{ .Values.auth.directoryURL | quote }}
+          startupProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: work
+              mountPath: /work
+            - name: tmp
+              mountPath: /tmp
+            {{- if not .Values.demo }}
+            # Mount complete directories: projected updates must not use subPath.
+            - name: runtime
+              mountPath: /config/runtime
+              readOnly: true
+            - name: git-key
+              mountPath: /credentials/git
+              readOnly: true
+            - name: git-host
+              mountPath: /credentials/git-host
+              readOnly: true
+            - name: auth
+              mountPath: /credentials/auth
+              readOnly: true
+            {{- end }}
+      volumes:
+        - name: work
+          emptyDir:
+            sizeLimit: 256Mi
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
+        {{- if not .Values.demo }}
+        - name: runtime
+          configMap:
+            name: {{ .Values.runtime.existingConfigMap }}
+        - name: git-key
+          secret:
+            secretName: {{ .Values.git.existingSecret }}
+            defaultMode: 0440
+        - name: git-host
+          configMap:
+            name: {{ .Values.git.knownHostsConfigMap }}
+        - name: auth
+          secret:
+            secretName: {{ .Values.auth.existingSecret }}
+            defaultMode: 0440
+        {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

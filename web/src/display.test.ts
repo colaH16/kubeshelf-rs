@@ -1,0 +1,41 @@
+import { expect, it } from 'vitest';
+import { appDisplay, displayCards, endpointHidden, namespaceDisplay, serviceDisplay, setServiceDisplay } from './display';
+import type { Card, Endpoint, Settings } from './types';
+const settings = (): Settings => ({ schemaVersion: 1, revision: 'test', namespaces: { public: { mode: 'public', hidden: true } }, nodePortNamespaces: { public: { mode: 'admin' } }, apps: {}, targets: [], manual: [], assignments: {} });
+const endpoint = (id: string, namespace = 'public'): Endpoint => ({ id, appId: id, namespace, kind: 'ingress', label: id, url: 'https://example.com', scheme: 'https', local: false, needsURL: false, health: { state: 'unknown', ready: 0, total: 0, reason: '' }, targets: [] });
+it('inherits namespace hiding by exposure kind while preserving legacy hidden entries', () => {
+ const s = settings(), e = endpoint('a');
+ expect(appDisplay({ hidden: false })).toBe('inherit');
+ expect(appDisplay({ hidden: true })).toBe('hide');
+ expect(endpointHidden(s, e)).toBe(true);
+ expect(endpointHidden(s, { ...e, kind: 'nodeport' })).toBe(false);
+ s.apps.a = { hidden: false, display: 'show' };
+ expect(endpointHidden(s, e)).toBe(false);
+ expect(namespaceDisplay(s).hidden).toBe(false);
+});
+it('reports mixed original service choices and restores inherited hiding without changing access', () => {
+ const s = settings(), endpoints = [endpoint('a'), endpoint('b', 'other')];
+ s.apps.a = { hidden: true, visibility: { mode: 'admin' } };
+ s.apps.group = { hidden: false, name: 'Group' };
+ expect(serviceDisplay(s, 'group', endpoints)).toBe('mixed');
+ setServiceDisplay(s, 'group', endpoints, 'inherit');
+ expect(serviceDisplay(s, 'group', endpoints)).toBe('inherit');
+ expect(endpointHidden(s, endpoints[0])).toBe(true);
+ expect(endpointHidden(s, endpoints[1])).toBe(false);
+ s.apps.group.hidden = true; delete s.apps.group.display;
+ s.assignments.a = 'group'; s.assignments.b = 'group';
+ expect(serviceDisplay(s, 'group', endpoints)).toBe('hide');
+ setServiceDisplay(s, 'group', endpoints, 'show');
+ expect(endpoints.map(e => endpointHidden(s, e))).toEqual([false, false]);
+ expect(s.apps.a.visibility).toEqual({ mode: 'admin' });
+ expect(s.namespaces.public.hidden).toBe(true);
+ s.assignments.future = 'group';
+ expect(endpointHidden(s, endpoint('future'))).toBe(true);
+});
+it('keeps hidden addresses out of shown cards and lists them in the hidden view', () => {
+ const card: Card = { id: 'group', name: 'Group', icon: '', description: '', source: 'ingress', namespace: 'public', hidden: false, new: true, changed: false, endpoints: [{ ...endpoint('a'), hidden: true }, { ...endpoint('b', 'other'), hidden: false }] };
+ expect(displayCards([card], false)[0].endpoints.map(e => e.id)).toEqual(['b']);
+ expect(displayCards([card], true)[0].endpoints.map(e => e.id)).toEqual(['a']);
+ expect(displayCards([card], true)[0].hidden).toBe(true);
+ expect(card.endpoints).toHaveLength(2);
+});

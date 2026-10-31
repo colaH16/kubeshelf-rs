@@ -1,0 +1,10 @@
+apiVersion: v2
+name: kubeshelf
+description: A Kubernetes-aware app shelf with namespace access policies and GitOps-managed settings.
+type: application
+version: 0.1.12
+appVersion: "0.1.12"
+home: https://github.com/colaH16/KubeShelf
+sources:
+  - https://github.com/colaH16/KubeShelf
+keywords: [kubernetes, dashboard, ingress, nodeport, gitops]

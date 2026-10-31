@@ -1,0 +1,130 @@
+name: Checks and multiarch image
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kubeshelf-rs-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  # Pinned original Go implementation used as the differential-test oracle.
+  GO_ORIGINAL_REPOSITORY: colaH16/KubeShelf
+  GO_ORIGINAL_COMMIT: 957bdd081db04ea2a205672e5f8e4d968c5ed193
+  NODE_VERSION: 24.22.2
+jobs:
+  test-and-image:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {runner: ubuntu-24.04, arch: amd64, node: x64}
+          - {runner: ubuntu-24.04-arm, arch: arm64, node: arm64}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Rust toolchain 1.99.1
+        run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt,clippy
+
+      - name: Node.js (checksum-verified official tarball)
+        run: |
+          base="https://nodejs.org/dist/v${NODE_VERSION}"
+          file="node-v${NODE_VERSION}-linux-${{ matrix.node }}.tar.xz"
+          curl -fsSLO "$base/$file"
+          curl -fsSL "$base/SHASUMS256.txt" | grep " ${file}\$" | sha256sum -c -
+          tar -xJf "$file" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/node-v${NODE_VERSION}-linux-${{ matrix.node }}/bin" >> "$GITHUB_PATH"
+
+      - name: Frontend tests and build
+        working-directory: web
+        run: |
+          node --version
+          npm ci --ignore-scripts
+          npm test
+          npm run build
+
+      - name: Rust format, lint, tests and release build
+        env:
+          KUBESHELF_VERSION: sha-${{ github.sha }}
+        run: |
+          cargo fmt --check
+          cargo clippy --locked --all-targets -- -D warnings
+          cargo test --locked
+          cargo build --locked --bin reference
+          cargo build --locked --release --bin kubeshelf-rs
+
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: ${{ env.GO_ORIGINAL_REPOSITORY }}
+          ref: ${{ env.GO_ORIGINAL_COMMIT }}
+          path: .go-original
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version: '1.27.1'
+          cache: false
+
+      - name: Build the original Go oracle (temporary copy of the pinned commit)
+        run: python3 scripts/build_reference.py --source .go-original --output "$RUNNER_TEMP/go-reference"
+
+      - name: Go/Rust differential tests
+        env:
+          KUBESHELF_GO_REFERENCE: ${{ runner.temp }}/go-reference
+          KUBESHELF_MISMATCH_FILE: ${{ runner.temp }}/mismatch.json
+        run: python3 -u tests/compare.py
+
+      - name: End-to-end tests (release binary, local mocks)
+        env:
+          # Chrome is preinstalled on the x64 runner image; arm64 skips if absent.
+          KUBESHELF_E2E_BROWSER_REQUIRED: ${{ matrix.arch == 'amd64' && '1' || '0' }}
+        run: python3 -u tests/e2e.py target/release/kubeshelf-rs
+
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        id: image
+        with:
+          context: .
+          platforms: linux/${{ matrix.arch }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ghcr.io/colah16/kubeshelf-rs:sha-${{ github.sha }}-${{ matrix.arch }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/colaH16/kubeshelf-rs
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=sha-${{ github.sha }}
+      - name: Record architecture digest
+        run: echo '${{ matrix.arch }} ${{ steps.image.outputs.digest }}' >> "$GITHUB_STEP_SUMMARY"
+
+  manifest:
+    needs: test-and-image
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish tested multiarch manifest
+        run: |
+          docker buildx imagetools create \
+            -t ghcr.io/colah16/kubeshelf-rs:sha-${{ github.sha }} \
+            ghcr.io/colah16/kubeshelf-rs:sha-${{ github.sha }}-amd64 \
+            ghcr.io/colah16/kubeshelf-rs:sha-${{ github.sha }}-arm64
+          docker buildx imagetools inspect ghcr.io/colah16/kubeshelf-rs:sha-${{ github.sha }} >> "$GITHUB_STEP_SUMMARY"

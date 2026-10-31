@@ -1,0 +1,62 @@
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "kubeshelf.serviceAccount" . }}
+  labels:
+    {{- include "kubeshelf.labels" . | nindent 4 }}
+{{- end }}
+{{- if and .Values.rbac.create (not .Values.demo) }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ printf "%s-%s-reader" .Release.Namespace (include "kubeshelf.fullname" .) }}
+rules:
+  - apiGroups: [""]
+    resources: [namespaces, services, pods, nodes]
+    verbs: [get, list]
+  - apiGroups: [networking.k8s.io]
+    resources: [ingresses]
+    verbs: [get, list]
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ printf "%s-%s-reader" .Release.Namespace (include "kubeshelf.fullname" .) }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ printf "%s-%s-reader" .Release.Namespace (include "kubeshelf.fullname" .) }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "kubeshelf.serviceAccount" . }}
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "kubeshelf.fullname" . }}-user-settings-reader
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [""]
+    resources: [configmaps]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "kubeshelf.fullname" . }}-user-settings-reader
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "kubeshelf.fullname" . }}-user-settings-reader
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "kubeshelf.serviceAccount" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
